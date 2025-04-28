@@ -19,7 +19,7 @@ public class Projectile : NetworkBehaviour
 
     protected int randomDamage;
 
-    [HideInInspector] public NetworkIdentity shooterIdentity; // Ensure this is set
+    [HideInInspector] [SyncVar] public NetworkIdentity shooterIdentity; // Ensure this is set
 
     protected Vector3 spawnPosition;
 

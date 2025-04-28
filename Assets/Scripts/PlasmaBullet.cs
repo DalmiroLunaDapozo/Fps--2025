@@ -3,12 +3,12 @@ using Mirror;
 
 public class PlasmaBullet : Projectile
 {
+
     private void Awake()
     {
         weapon = FindObjectOfType<PlasmaGun>();
     }
 
-    // This method is responsible for dealing with the explosion
     [Server]
     override protected void Explode()
     {
@@ -21,7 +21,6 @@ public class PlasmaBullet : Projectile
             Rigidbody rb = hit.attachedRigidbody;
             if (rb != null)
             {
-                // Always apply explosion force, even to the shooter
                 rb.AddExplosionForce(explosionForce, transform.position, explosionRadius);
             }
             else
@@ -30,74 +29,86 @@ public class PlasmaBullet : Projectile
                 if (playerController != null)
                 {
                     playerController.RocketJump(transform.position, explosionForce);
+
+                    if (playerController.connectionToClient != null)
+                    {
+                        playerController.TargetRocketJump(playerController.connectionToClient, transform.position, explosionForce);
+                    }
                 }
             }
 
-            // Now handle damage separately
+            // Check if it's a player
             NetworkIdentity hitIdentity = hit.GetComponentInParent<NetworkIdentity>();
+            if (hitIdentity != null)
+            {
+                FPSMovement movement = hitIdentity.GetComponent<FPSMovement>();
 
-            // Only damage others, not yourself
-            if (hitIdentity != null && hitIdentity == shooterIdentity)
-                continue; // Skip damaging the shooter
+                if (movement != null)
+                {
+                    Vector3 direction = (movement.transform.position - transform.position).normalized;
 
+                    if (hitIdentity.isOwned)
+                    {
+                        movement.ApplyLocalRocketJump(direction);
+                    }
+                    else
+                    {
+                        movement.TargetRocketJump(hitIdentity.connectionToClient, transform.position, explosionForce);
+                    }
+                }
+            }
+
+            // Handle damage
             IDamageable damageable = hit.GetComponent<IDamageable>();
             if (damageable != null)
             {
-                int damage = weapon != null ? Random.Range(weapon.maxDamage, weapon.minDamage) : 10;
-                damageable.TakeDamage(damage, gameObject);
+                bool isSelf = (hitIdentity != null && hitIdentity == shooterIdentity);
 
-                DamageAccumulator accumulator = hit.GetComponent<DamageAccumulator>();
-                if (accumulator != null)
+                if (!isSelf) //  don't damage yourself
                 {
-                    accumulator.AddDamage(damage, transform.position);
-                }
+                    int damage = weapon != null ? Random.Range(weapon.maxDamage, weapon.minDamage) : 10;
+                    damageable.TakeDamage(damage, gameObject);
 
-                PlayerController playerController = hit.gameObject.GetComponentInParent<PlayerController>();
-
-                if (playerController != null && playerController.health <= 0)
-                {
-                    if (shooterIdentity != null)
+                    DamageAccumulator accumulator = hit.GetComponent<DamageAccumulator>();
+                    if (accumulator != null)
                     {
-                        PlayerController shooterController = shooterIdentity.GetComponent<PlayerController>();
-                        if (shooterController != null)
+                        accumulator.AddDamage(damage, transform.position);
+                    }
+
+                    PlayerController playerController = hit.GetComponentInParent<PlayerController>();
+                    if (playerController != null && playerController.health <= 0)
+                    {
+                        if (shooterIdentity != null)
                         {
-                            shooterController.AddKill();
-                            Debug.Log("Kill confirmed by explosion!");
+                            PlayerController shooterController = shooterIdentity.GetComponent<PlayerController>();
+                            if (shooterController != null)
+                            {
+                                shooterController.AddKill();
+                                Debug.Log("Kill confirmed by explosion!");
+                            }
                         }
                     }
-                }
 
-                if (shooterIdentity != null)
-                {
-                    var shooterScript = shooterIdentity.GetComponent<FPSShoot>();
-                    if (shooterScript != null)
+                    if (shooterIdentity != null)
                     {
-                        shooterScript.TargetShowHitMarker(shooterIdentity.connectionToClient);
+                        var shooterScript = shooterIdentity.GetComponent<FPSShoot>();
+                        if (shooterScript != null)
+                        {
+                            shooterScript.TargetShowHitMarker(shooterIdentity.connectionToClient);
+                        }
                     }
-                }
 
-                Debug.Log("Damage dealt by explosion: " + damage);
+                    Debug.Log("Damage dealt by explosion: " + damage);
+                }
             }
         }
 
         NetworkServer.Destroy(gameObject);
     }
 
-
-    // Helper method to handle kill counting logic
-    private void HandleKill(GameObject target)
-    {
-        PlayerController playerController = target.GetComponentInParent<PlayerController>();
-        if (playerController != null && playerController.GetHealth() <= 0)
-        {
-            playerController.AddKill(); // Increment kill count
-            Debug.Log("Kill confirmed for player: " + target.name);
-        }
-    }
-
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = new Color(1, 0.5f, 0, 0.8f); // Orange with some transparency
+        Gizmos.color = new Color(1, 0.5f, 0, 0.8f);
         Gizmos.DrawSphere(transform.position, explosionRadius);
     }
 }

@@ -6224,6 +6224,7 @@ MonoBehaviour:
   - {fileID: 1991981165879869193, guid: a4a8e2f3d6b95f943a357075da1e2ccc, type: 3}
   - {fileID: 5169816574427662399, guid: 2e945a9b3b145e84a83063ca43eaa74d, type: 3}
   - {fileID: 5626160957048085402, guid: f44c2e677643eaf4fa9d563d3a54e3cb, type: 3}
+  - {fileID: 1991981165879869193, guid: 8f2677f6cd18e17458ae9340489be316, type: 3}
   exceptionsDisconnect: 1
   snapshotSettings:
     bufferTimeMultiplier: 2
@@ -6453,6 +6454,7 @@ MonoBehaviour:
   - {fileID: 467934151}
   - {fileID: 317350353}
   - {fileID: 1065852193}
+  - {fileID: 1211205611}
 --- !u!4 &815785065
 Transform:
   m_ObjectHideFlags: 0
@@ -6469,6 +6471,7 @@ Transform:
   - {fileID: 467934149}
   - {fileID: 317350351}
   - {fileID: 1065852191}
+  - {fileID: 1211205609}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
@@ -9183,6 +9186,85 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1666445924}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1211205608
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1211205609}
+  - component: {fileID: 1211205611}
+  - component: {fileID: 1211205610}
+  m_Layer: 0
+  m_Name: BounceGun
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1211205609
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1211205608}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 815785065}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1211205610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1211205608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 3311806584
+  _assetId: 0
+  serverOnly: 0
+  visibility: 0
+  hasSpawned: 0
+--- !u!114 &1211205611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1211205608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c62c73c162056214ea7a151e9ec8b8c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMethod: 0
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  weaponName: BounceGun
+  fireRate: 0.2
+  maxAmmo: 1000
+  projectilePrefab: {fileID: 1991981165879869193, guid: 8f2677f6cd18e17458ae9340489be316,
+    type: 3}
+  firePoint: {fileID: 0}
+  maxDamage: 10
+  minDamage: 15
+  projectileSpeed: 80
+  recoilAmount: 1
+  recoilSpeed: 8
+  hasInfiniteAmmo: 1
+  currentAmmo: 0
 --- !u!4 &1237696401 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2773531814656972353, guid: 2e945a9b3b145e84a83063ca43eaa74d,
@@ -17869,6 +17951,7 @@ MonoBehaviour:
   - {fileID: 1991981165879869193, guid: a4a8e2f3d6b95f943a357075da1e2ccc, type: 3}
   - {fileID: 5626160957048085402, guid: f44c2e677643eaf4fa9d563d3a54e3cb, type: 3}
   - {fileID: 5169816574427662399, guid: 2e945a9b3b145e84a83063ca43eaa74d, type: 3}
+  - {fileID: 1991981165879869193, guid: 8f2677f6cd18e17458ae9340489be316, type: 3}
   exceptionsDisconnect: 1
   snapshotSettings:
     bufferTimeMultiplier: 2

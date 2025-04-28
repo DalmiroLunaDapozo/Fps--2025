@@ -186,29 +186,84 @@ public class FPSMovement : NetworkBehaviour
         return moveInput;
     }
 
-    public void RocketJump(Vector3 explosionOrigin, float force)
+    [TargetRpc]
+    public void TargetRocketJump(NetworkConnection target, Vector3 explosionPosition, float force)
     {
-        // Calculate push direction
-        Vector3 direction = (transform.position - explosionOrigin).normalized;
-        direction.y = 0.5f; // Push upwards more (adjust this number to fine-tune)
+        Debug.Log($"TargetRocketJump triggered for: {gameObject.name}");
 
-        // Apply upward force directly to ySpeed (this is your vertical movement)
-        ySpeed = Mathf.Sqrt(force * -2f * gravity);
-
-        // Optional: Apply some horizontal force too
-        StartCoroutine(ApplyRocketJumpHorizontal(direction.normalized, force * 0.3f)); // 30% of force sideways
-    }
-
-    private IEnumerator ApplyRocketJumpHorizontal(Vector3 horizontalDirection, float force)
-    {
-        float duration = 0.2f; // push lasts for 0.2s
-        float timer = 0f;
-
-        while (timer < duration)
+        if (characterController != null)
         {
-            characterController.Move(horizontalDirection * force * Time.deltaTime);
-            timer += Time.deltaTime;
-            yield return null;
+            // Calculate the direction to move (opposite of explosion)
+            Vector3 direction = (transform.position - explosionPosition).normalized;
+            Vector3 jumpVelocity = direction * force;
+
+            // Apply rocket jump force (smooth)
+            StartCoroutine(ApplyRocketJump(jumpVelocity));
+        }
+        else
+        {
+            Debug.LogWarning("No CharacterController found on client for RocketJump.");
         }
     }
+
+    private IEnumerator ApplyRocketJump(Vector3 jumpVelocity)
+    {
+        // How long the rocket jump force lasts
+        float jumpDuration = 0.3f;
+        float timeElapsed = 0f;
+
+        // Smoothly apply the jump force over time
+        while (timeElapsed < jumpDuration)
+        {
+            // Gradually decrease the force as time goes on
+            float lerpFactor = timeElapsed / jumpDuration;
+            Vector3 smoothVelocity = Vector3.Lerp(jumpVelocity, Vector3.zero, lerpFactor); // Smooth transition to zero velocity
+
+            // Apply the smooth velocity to the character controller
+            characterController.Move(smoothVelocity * Time.deltaTime);
+
+            // Increment time
+            timeElapsed += Time.deltaTime;
+
+            yield return null;
+        }
+
+        // After the jump duration, gravity will naturally take over and the player will fall
+    }
+
+    public void ApplyLocalRocketJump(Vector3 velocity)
+    {
+        Debug.Log($"Applying local rocket jump for {gameObject.name}");
+        StartCoroutine(ApplyRocketJump(velocity));
+    }
+
+    public void RocketJump(Vector3 explosionPosition, float explosionForce)
+    {
+        Vector3 direction = (transform.position - explosionPosition).normalized;
+        Vector3 jumpVelocity = direction * explosionForce;
+
+        // Apply the jump locally
+        if (isLocalPlayer)
+        {
+            StartCoroutine(ApplyRocketJump(jumpVelocity)); // Local application of rocket jump
+            CmdApplyRocketJump(jumpVelocity); // Tell the server to apply the jump and sync it
+        }
+    }
+
+    [Command]
+    public void CmdApplyRocketJump(Vector3 jumpVelocity)
+    {
+        ApplyRocketJump(jumpVelocity); // Apply the force on the server
+        RpcSyncRocketJump(jumpVelocity); // Sync the jump across all clients
+    }
+
+    [ClientRpc]
+    public void RpcSyncRocketJump(Vector3 jumpVelocity)
+    {
+        if (!isLocalPlayer) // Only apply the rocket jump to the local player
+        {
+            StartCoroutine(ApplyRocketJump(jumpVelocity)); // Apply the smooth rocket jump
+        }
+    }
+
 }
