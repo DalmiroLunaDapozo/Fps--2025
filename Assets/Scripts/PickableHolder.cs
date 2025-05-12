@@ -11,6 +11,9 @@ public class PickableHolder : NetworkBehaviour
 
     public Transform spawnPoint; // Where to spawn (can just be the holder's transform)
 
+    public Vector3 spawnOffset;
+    public Quaternion spawnRotationOffset;
+
     private void Start()
     {
         if (isServer)
@@ -35,7 +38,7 @@ public class PickableHolder : NetworkBehaviour
     [Server]
     private void SpawnPickable()
     {
-        currentPickable = Instantiate(pickablePrefab, spawnPoint.position, spawnPoint.rotation);
+        currentPickable = Instantiate(pickablePrefab, spawnPoint.position + spawnOffset, Quaternion.identity * spawnRotationOffset);
         NetworkServer.Spawn(currentPickable);
     }
 }

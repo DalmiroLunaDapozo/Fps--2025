@@ -49,6 +49,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "SecondaryShoot",
+                    "type": "Button",
+                    "id": "04d42a77-a95f-4006-b74b-2b5582d71b20",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -172,6 +181,17 @@
                     "action": "ChangeWeapon",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "b696b0fc-f6b1-44d1-88c5-a7fe6c66f9be",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "SecondaryShoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

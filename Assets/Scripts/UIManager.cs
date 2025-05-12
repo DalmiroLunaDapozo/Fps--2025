@@ -9,8 +9,16 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI life_text;
     [SerializeField] private TextMeshProUGUI deaths_text;
     [SerializeField] private TextMeshProUGUI kills_text;
+    [SerializeField] private TextMeshProUGUI pickupText;
+    [SerializeField] private TextMeshProUGUI ammoText;
     [SerializeField] private DamagablePlayer damagablePlayer;
     private PlayerController localPlayer;
+
+    public float pickUpDisplayDuration = 2f;
+
+    private Coroutine currentRoutine;
+
+    [SerializeField] private FPSShoot shootManager;
 
     private void Start()
     {
@@ -44,6 +52,24 @@ public class UIManager : MonoBehaviour
         life_text.text = "Life: " + localPlayer.health;
         deaths_text.text = "Deaths: " + damagablePlayer.deathCount;
         kills_text.text = "Kills: " + damagablePlayer.killCount;
+        ammoText.text = "Ammo: " + shootManager.GetCurrentAmmo();
+    }
 
+    public void ShowPickupMessage(string message)
+    {
+        if (currentRoutine != null)
+            StopCoroutine(currentRoutine);
+
+        currentRoutine = StartCoroutine(ShowMessageRoutine(message));
+    }
+
+    private IEnumerator ShowMessageRoutine(string message)
+    {
+        pickupText.text = message;
+        pickupText.gameObject.SetActive(true);
+
+        yield return new WaitForSeconds(pickUpDisplayDuration);
+
+        pickupText.gameObject.SetActive(false);
     }
 }

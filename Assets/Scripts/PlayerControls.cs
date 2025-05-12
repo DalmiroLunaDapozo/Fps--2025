@@ -71,6 +71,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""SecondaryShoot"",
+                    ""type"": ""Button"",
+                    ""id"": ""04d42a77-a95f-4006-b74b-2b5582d71b20"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -194,6 +203,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""ChangeWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b696b0fc-f6b1-44d1-88c5-a7fe6c66f9be"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""SecondaryShoot"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -213,6 +233,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Shoot = m_Player.FindAction("Shoot", throwIfNotFound: true);
         m_Player_ChangeWeapon = m_Player.FindAction("ChangeWeapon", throwIfNotFound: true);
+        m_Player_SecondaryShoot = m_Player.FindAction("SecondaryShoot", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -279,6 +300,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Shoot;
     private readonly InputAction m_Player_ChangeWeapon;
+    private readonly InputAction m_Player_SecondaryShoot;
     public struct PlayerActions
     {
         private @PlayerControls m_Wrapper;
@@ -288,6 +310,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputAction @Shoot => m_Wrapper.m_Player_Shoot;
         public InputAction @ChangeWeapon => m_Wrapper.m_Player_ChangeWeapon;
+        public InputAction @SecondaryShoot => m_Wrapper.m_Player_SecondaryShoot;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -312,6 +335,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @ChangeWeapon.started += instance.OnChangeWeapon;
             @ChangeWeapon.performed += instance.OnChangeWeapon;
             @ChangeWeapon.canceled += instance.OnChangeWeapon;
+            @SecondaryShoot.started += instance.OnSecondaryShoot;
+            @SecondaryShoot.performed += instance.OnSecondaryShoot;
+            @SecondaryShoot.canceled += instance.OnSecondaryShoot;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -331,6 +357,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @ChangeWeapon.started -= instance.OnChangeWeapon;
             @ChangeWeapon.performed -= instance.OnChangeWeapon;
             @ChangeWeapon.canceled -= instance.OnChangeWeapon;
+            @SecondaryShoot.started -= instance.OnSecondaryShoot;
+            @SecondaryShoot.performed -= instance.OnSecondaryShoot;
+            @SecondaryShoot.canceled -= instance.OnSecondaryShoot;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -364,5 +393,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnJump(InputAction.CallbackContext context);
         void OnShoot(InputAction.CallbackContext context);
         void OnChangeWeapon(InputAction.CallbackContext context);
+        void OnSecondaryShoot(InputAction.CallbackContext context);
     }
 }

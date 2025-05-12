@@ -5,13 +5,16 @@ using UnityEngine.InputSystem;
 
 public class WeaponManager : NetworkBehaviour
 {
-    public List<Weapon> weapons = new List<Weapon>();
+    public List<Weapon> allWeapons;                   // Assigned in Inspector: all possible weapons
+    public List<Weapon> unlockedWeapons = new();      // Only the currently unlocked weapons
     public int currentWeaponIndex = 0;
     private Weapon currentWeapon;
 
     private PlayerControls inputActions;
     private FPSShoot shootController;
     private FPSMovement movement;
+
+    public UIManager pickupUI;
 
     void Awake()
     {
@@ -32,7 +35,20 @@ public class WeaponManager : NetworkBehaviour
 
     void Start()
     {
-        EquipWeapon(currentWeaponIndex);
+        // Deactivate all weapons
+        foreach (var weapon in allWeapons)
+        {
+            if (weapon != null)
+                weapon.gameObject.SetActive(false);
+        }
+
+        // Unlock the first weapon only
+        if (allWeapons.Count > 0)
+        {
+            Weapon startingWeapon = allWeapons[0];
+            unlockedWeapons.Add(startingWeapon);
+            EquipWeapon(0);
+        }
     }
 
     void Update()
@@ -53,10 +69,12 @@ public class WeaponManager : NetworkBehaviour
 
     void ScrollWeapon(int direction)
     {
+        if (unlockedWeapons.Count <= 1) return;
+
         currentWeaponIndex += direction;
 
-        if (currentWeaponIndex >= weapons.Count) currentWeaponIndex = 0;
-        else if (currentWeaponIndex < 0) currentWeaponIndex = weapons.Count - 1;
+        if (currentWeaponIndex >= unlockedWeapons.Count) currentWeaponIndex = 0;
+        else if (currentWeaponIndex < 0) currentWeaponIndex = unlockedWeapons.Count - 1;
 
         CmdEquipWeapon(currentWeaponIndex);
     }
@@ -76,44 +94,80 @@ public class WeaponManager : NetworkBehaviour
 
     public void EquipWeapon(int index)
     {
-        if (index >= weapons.Count) return;
+        if (index < 0 || index >= unlockedWeapons.Count) return;
 
         if (currentWeapon != null)
         {
             currentWeapon.gameObject.SetActive(false);
-
-            SwayGun swayGun = currentWeapon.GetComponent<SwayGun>();
-            if (swayGun != null)
-                swayGun.enabled = false;
+            var oldSway = currentWeapon.GetComponent<SwayGun>();
+            if (oldSway != null)
+                oldSway.enabled = false;
         }
 
         currentWeaponIndex = index;
-        currentWeapon = weapons[index];
+        currentWeapon = unlockedWeapons[index];
         currentWeapon.gameObject.SetActive(true);
 
-        //  This block now runs for ALL instances, not just local player
         if (shootController != null)
         {
             shootController.SetWeaponData(currentWeapon);
             shootController.ResetFireTimer();
         }
 
-        if (movement != null && movement is FPSMovement)
+        if (movement != null)
         {
             movement.SetRecoil(currentWeapon);
         }
 
-        SwayGun newSwayGun = currentWeapon.GetComponent<SwayGun>();
-        if (newSwayGun != null)
+        var newSway = currentWeapon.GetComponent<SwayGun>();
+        if (newSway != null)
         {
-            newSwayGun.enabled = true;
-            newSwayGun.ReinitializeSway();
+            newSway.enabled = true;
+            newSway.ReinitializeSway();
         }
     }
 
     public Weapon GetCurrentWeapon()
     {
-        currentWeapon = weapons[currentWeaponIndex];
         return currentWeapon;
+    }
+
+    [Command]
+    public void CmdPickupWeaponByIndex(int index)
+    {
+        RpcUnlockWeapon(index);
+    }
+
+    [ClientRpc]
+    void RpcUnlockWeapon(int index)
+    {
+        if (index < 0 || index >= allWeapons.Count) return;
+
+        Weapon weaponToUnlock = allWeapons[index];
+        if (unlockedWeapons.Contains(weaponToUnlock)) return;
+
+        weaponToUnlock.gameObject.SetActive(false); // Keep it disabled until equipped
+        unlockedWeapons.Add(weaponToUnlock);
+
+        // If this is the first weapon picked up after start, auto-equip it
+        if (unlockedWeapons.Count == 1)
+        {
+            EquipWeapon(0);
+        }
+
+        if (isLocalPlayer && pickupUI != null)
+        {
+            pickupUI.ShowPickupMessage($"Picked up: {weaponToUnlock.weaponName}");
+        }
+    }
+
+    [Command]
+    public void CmdPickupWeaponAndDestroy(int index, NetworkIdentity pickup)
+    {
+        RpcUnlockWeapon(index);
+
+        // Now destroy the pickup across all clients
+        if (pickup != null)
+            NetworkServer.Destroy(pickup.gameObject);
     }
 }

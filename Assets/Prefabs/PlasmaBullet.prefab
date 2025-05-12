@@ -113,7 +113,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
@@ -141,7 +141,7 @@ MonoBehaviour:
   damageableLayers:
     serializedVersion: 2
     m_Bits: 1
-  customGravityScale: 0.1
+  customGravityScale: 0
   lifeTime: 10
   damagePopupPrefab: {fileID: 5279766189808309452, guid: 4398a8c1d587d544e9cdb14728ce5b54,
     type: 3}
