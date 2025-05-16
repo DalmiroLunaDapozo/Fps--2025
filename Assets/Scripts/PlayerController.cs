@@ -12,13 +12,22 @@ public class PlayerController : NetworkBehaviour
     [SyncVar] public int maxHealth;
     [SyncVar] public bool isDead = false;
 
-    [SyncVar] private float syncedGunYaw; // Only sync the horizontal rotation (yaw)
+    [SyncVar(hook = nameof(OnGunYawChanged))] private float syncedGunYaw; // Only sync the horizontal rotation (yaw)
 
     public float pitchClampMin = -80f;
     public float pitchClampMax = 80f;
 
     public Animator animator;
     public DamagablePlayer damagablePlayer;
+
+    // Rotation speed multiplier for smooth lerping (degrees per second)
+    public float rotationSpeed = 180f; // You can tweak this in Inspector
+
+    // Debug offset if you want to adjust third person weapon yaw
+    public float debugYawOffset = 0f;
+
+    // Target rotation yaw for third-person weapon, updated by SyncVar hook
+    private float targetYaw;
 
     float NormalizeAngle(float angle)
     {
@@ -58,46 +67,39 @@ public class PlayerController : NetworkBehaviour
         if (!isLocalPlayer) return;
 
         // Sync only the yaw of the first-person weapon
-        if (armaPrimeraPersona != null)
-        {
-            float yaw = armaPrimeraPersona.transform.eulerAngles.y;
-            CmdSendGunRotation(yaw);
-        }
-
-        // Still clamp pitch if needed
-        float pitch = NormalizeAngle(cameraHolder.transform.localEulerAngles.x);
-        pitch = Mathf.Clamp(pitch, pitchClampMin, pitchClampMax);
-        float yawPlayer = transform.eulerAngles.y;
-        CmdSendLookRotation(pitch, yawPlayer);
+        //if (armaPrimeraPersona != null)
+        //{
+        //    float yaw = armaPrimeraPersona.transform.eulerAngles.y;
+        //    CmdSendGunYaw(yaw);
+        //}
     }
 
     [Command]
-    void CmdSendLookRotation(float x, float y)
-    {
-        // Optional if you're syncing body/camera look separately
-    }
-
-    [Command]
-    void CmdSendGunRotation(float yaw)
+    void CmdSendGunYaw(float yaw)
     {
         syncedGunYaw = yaw;
     }
 
-    void LateUpdate()
-    {
-        if (isLocalPlayer) return;
+    //void LateUpdate()
+    //{
+    //    if (isLocalPlayer) return;
 
-        // Apply only yaw rotation to the third-person weapon
-        if (armaTerceraPersona != null)
-        {
-            Quaternion targetRotation = Quaternion.Euler(0, syncedGunYaw + 180f, 0);
-            armaTerceraPersona.transform.rotation = Quaternion.Slerp(
-                armaTerceraPersona.transform.rotation,
-                targetRotation,
-                Time.deltaTime * 10f
-            );
-        }
-    }
+    //    if (armaTerceraPersona != null)
+    //    {
+    //        // Smoothly interpolate towards the target yaw
+    //        targetYaw = syncedGunYaw + debugYawOffset;
+
+    //        Quaternion currentRot = armaTerceraPersona.transform.localRotation;
+    //        Quaternion targetRot = Quaternion.Euler(currentRot.eulerAngles.x, targetYaw, currentRot.eulerAngles.z);
+
+    //        // Smooth rotation with RotateTowards for consistent speed
+    //        armaTerceraPersona.transform.localRotation = Quaternion.RotateTowards(
+    //            currentRot,
+    //            targetRot,
+    //            rotationSpeed * Time.deltaTime
+    //        );
+    //    }
+    //}
 
     public override void OnStartLocalPlayer()
     {
@@ -111,21 +113,30 @@ public class PlayerController : NetworkBehaviour
         if (worldCanvas != null && worldCanvas.renderMode == RenderMode.WorldSpace)
         {
             worldCanvas.worldCamera = GetComponentInChildren<Camera>();
-        
+        }
+    }
+
+    void OnGunYawChanged(float oldYaw, float newYaw)
+    {
+        // Just update the target yaw, smoothing happens in LateUpdate
+        if (!isLocalPlayer && armaTerceraPersona != null)
+        {
+            targetYaw = newYaw + debugYawOffset;
         }
     }
 
     public void AddKill()
     {
         damagablePlayer.killCount++;
-        
     }
+
     public void Heal(int amount)
     {
         health += amount;
         health = Mathf.Min(health, maxHealth); // Max health
         Debug.Log($"Healed by {amount}. Current health: {health}");
     }
+
     public float GetHealth()
     {
         return health;  // Implement as per your health system

@@ -3,87 +3,108 @@ using Mirror;
 
 public class NetworkAnimatorSync : NetworkBehaviour
 {
-    [SerializeField] private Animator thirdPersonAnimator;
+    [SerializeField] public Animator thirdPersonAnimator;
 
-    [SyncVar(hook = nameof(OnRunningChanged))]
-    private bool isRunning;
+    [SyncVar(hook = nameof(OnRunningChanged))] private bool isRunning;
+    [SyncVar(hook = nameof(OnJumpingChanged))] private bool isJumping;
+    [SyncVar(hook = nameof(OnGroundedChanged))] private bool isGrounded;
+    [SyncVar(hook = nameof(OnAimPitchChanged))] [SerializeField] private float aimPitch;
+    [SyncVar(hook = nameof(OnAimYawChanged))] [SerializeField] private float aimYaw;
 
-    [SyncVar(hook = nameof(OnJumpingChanged))]
-    private bool isJumping;
+    private void Awake()
+    {
+        if (thirdPersonAnimator == null)
+        {
+            thirdPersonAnimator = GetComponent<Animator>();
+        }
+    }
 
-    [SyncVar(hook = nameof(OnGroundedChanged))]
-    private bool isGrounded;
-
+    // ---------------- Running ----------------
     public void SetRunning(bool running)
     {
-        if (isServer)
-        {
-            isRunning = running;
-            thirdPersonAnimator.SetBool("IsRunning", running);
-        }
-        else
-        {
-            CmdSetRunning(running);
-        }
+        CmdSetRunning(running);
     }
 
     [Command]
     private void CmdSetRunning(bool running)
     {
         isRunning = running;
-        thirdPersonAnimator.SetBool("IsRunning", running);
     }
 
-    private void OnRunningChanged(bool oldVal, bool newVal)
+    private void OnRunningChanged(bool _, bool newVal)
     {
+        if (isLocalPlayer) return;
         thirdPersonAnimator.SetBool("IsRunning", newVal);
     }
 
+    // ---------------- Jumping ----------------
     public void SetJumping(bool jumping)
     {
-        if (isServer)
-        {
-            isJumping = jumping;
-            thirdPersonAnimator.SetBool("IsJumping", jumping);
-        }
-        else
-        {
-            CmdSetJumping(jumping);
-        }
+        CmdSetJumping(jumping);
     }
+
+    [Command]
+    private void CmdSetJumping(bool jumping)
+    {
+        isJumping = jumping;
+    }
+
+    private void OnJumpingChanged(bool _, bool newVal)
+    {
+        if (isLocalPlayer) return;
+        thirdPersonAnimator.SetBool("IsJumping", newVal);
+    }
+
+    // ---------------- Grounded ----------------
     public void SetGrounded(bool grounded)
     {
-        if (isServer)
-        {
-            isGrounded = grounded;
-            thirdPersonAnimator.SetBool("IsGrounded", grounded);
-        }
-        else
-        {
-            CmdSetGrounded(grounded);
-        }
+        CmdSetGrounded(grounded);
     }
 
     [Command]
     private void CmdSetGrounded(bool grounded)
     {
         isGrounded = grounded;
-        thirdPersonAnimator.SetBool("IsGrounded", grounded);
     }
 
-    private void OnGroundedChanged(bool oldVal, bool newVal)
+    private void OnGroundedChanged(bool _, bool newVal)
     {
+        if (isLocalPlayer) return;
         thirdPersonAnimator.SetBool("IsGrounded", newVal);
     }
-    [Command]
-    private void CmdSetJumping(bool jumping)
+
+    // ---------------- Aim Angles ----------------
+    // Called by local player whenever its camera moves:
+    public void UpdateAimAngles(float pitch, float yaw)
     {
-        isJumping = jumping;
-        thirdPersonAnimator.SetBool("IsJumping", jumping);
+        if (thirdPersonAnimator != null)
+        {
+            thirdPersonAnimator.SetFloat("AimPitch", pitch);
+            thirdPersonAnimator.SetFloat("AimYaw", yaw);
+        }
+
+        if (isLocalPlayer)
+        {
+            CmdUpdateAimAngles(pitch, yaw);
+        }
     }
 
-    private void OnJumpingChanged(bool oldVal, bool newVal)
+    [Command]
+    void CmdUpdateAimAngles(float p, float y)
     {
-        thirdPersonAnimator.SetBool("IsJumping", newVal);
+        aimPitch = p;
+        aimYaw = y;
+    }
+
+    void OnAimPitchChanged(float _, float newPitch)
+    {
+        if (isLocalPlayer) return;
+        thirdPersonAnimator.SetFloat("AimPitch", newPitch);
+    }
+
+    void OnAimYawChanged(float _, float newYaw)
+    {
+        if (isLocalPlayer) return;
+        thirdPersonAnimator.SetFloat("AimYaw", newYaw);
     }
 }

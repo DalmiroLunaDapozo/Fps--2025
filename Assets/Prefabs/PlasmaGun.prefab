@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: 8247765564486851308}
   - component: {fileID: 1223048709035405797}
   - component: {fileID: 8700535613076328843}
-  - component: {fileID: 3787144436997893537}
   - component: {fileID: 4944663407734645199}
+  - component: {fileID: -8354040113419341391}
   m_Layer: 0
   m_Name: PlasmaGun
   m_TagString: Untagged
@@ -124,9 +124,11 @@ MonoBehaviour:
   syncInterval: 0
   weaponName: PlasmaGun
   fireRate: 3
+  secondaryFireRate: 0
   maxAmmo: 20
   projectilePrefab: {fileID: 1991981165879869193, guid: a4a8e2f3d6b95f943a357075da1e2ccc,
     type: 3}
+  secondaryProjectilePrefab: {fileID: 0}
   firePoint: {fileID: 0}
   maxDamage: 70
   minDamage: 50
@@ -134,6 +136,7 @@ MonoBehaviour:
   recoilAmount: 10
   recoilSpeed: 11
   hasInfiniteAmmo: 1
+  secondaryActionType: 0
   currentAmmo: 20
 --- !u!114 &8700535613076328843
 MonoBehaviour:
@@ -152,19 +155,6 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   weaponIndex: 2
---- !u!114 &3787144436997893537
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6640491471565384538}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 739b68f345b69914d8c4f65f06112e04, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rotateSpeed: {x: 0, y: 20, z: 0}
 --- !u!65 &4944663407734645199
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -186,6 +176,26 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.17999999, y: 0.28390744, z: 0.6834096}
   m_Center: {x: 0, y: 0.09644798, z: -0.0782952}
+--- !u!114 &-8354040113419341391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6640491471565384538}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16861bc3157fd044991659765f0c2f7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMethod: 0
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  pickableType: 3
+  amount: 0
+  rotation_speed: 10
+  holder: {fileID: 0}
 --- !u!1 &7814102093059997951
 GameObject:
   m_ObjectHideFlags: 0

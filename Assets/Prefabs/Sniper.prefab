@@ -181,7 +181,7 @@ GameObject:
   - component: {fileID: 4007576714281806106}
   - component: {fileID: 6909552293942121364}
   - component: {fileID: 3174461030216917982}
-  - component: {fileID: -4989727533982136640}
+  - component: {fileID: -6669086320128050091}
   m_Layer: 0
   m_Name: Sniper
   m_TagString: Untagged
@@ -278,9 +278,11 @@ MonoBehaviour:
   syncInterval: 0
   weaponName: Sniper
   fireRate: 1
+  secondaryFireRate: 0
   maxAmmo: 1000
   projectilePrefab: {fileID: 1991981165879869193, guid: f49ee889f8030c94dbffba4329c0d5fe,
     type: 3}
+  secondaryProjectilePrefab: {fileID: 0}
   firePoint: {fileID: 0}
   maxDamage: 100
   minDamage: 30
@@ -288,8 +290,11 @@ MonoBehaviour:
   recoilAmount: 6
   recoilSpeed: 11
   hasInfiniteAmmo: 1
+  secondaryActionType: 0
   currentAmmo: 1000
---- !u!114 &-4989727533982136640
+  defaultFOV: 60
+  zoomedFOV: 30
+--- !u!114 &-6669086320128050091
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -298,10 +303,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 7493473365324995197}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 739b68f345b69914d8c4f65f06112e04, type: 3}
+  m_Script: {fileID: 11500000, guid: 16861bc3157fd044991659765f0c2f7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotateSpeed: {x: 0, y: 20, z: 0}
+  syncMethod: 0
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  pickableType: 3
+  amount: 0
+  rotation_speed: 10
+  holder: {fileID: 0}
 --- !u!1 &8666931160490462300
 GameObject:
   m_ObjectHideFlags: 0

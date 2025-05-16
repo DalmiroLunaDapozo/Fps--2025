@@ -5,9 +5,12 @@ using UnityEngine.InputSystem;
 
 public class WeaponManager : NetworkBehaviour
 {
-    public List<Weapon> allWeapons;                   // Assigned in Inspector: all possible weapons
-    public List<Weapon> unlockedWeapons = new();      // Only the currently unlocked weapons
+    public List<Weapon> allWeapons;
+    public List<Weapon> unlockedWeapons = new();
+
+    [SyncVar(hook = nameof(OnWeaponIndexChanged))]
     public int currentWeaponIndex = 0;
+
     private Weapon currentWeapon;
 
     private PlayerControls inputActions;
@@ -23,26 +26,16 @@ public class WeaponManager : NetworkBehaviour
         movement = GetComponent<FPSMovement>();
     }
 
-    void OnEnable()
-    {
-        inputActions.Enable();
-    }
-
-    void OnDisable()
-    {
-        inputActions.Disable();
-    }
+    void OnEnable() => inputActions.Enable();
+    void OnDisable() => inputActions.Disable();
 
     void Start()
     {
-        // Deactivate all weapons
         foreach (var weapon in allWeapons)
         {
-            if (weapon != null)
-                weapon.gameObject.SetActive(false);
+            if (weapon != null) weapon.gameObject.SetActive(false);
         }
 
-        // Unlock the first weapon only
         if (allWeapons.Count > 0)
         {
             Weapon startingWeapon = allWeapons[0];
@@ -57,39 +50,35 @@ public class WeaponManager : NetworkBehaviour
 
         float scroll = inputActions.Player.ChangeWeapon.ReadValue<float>();
 
-        if (scroll > 0.1f)
-        {
-            ScrollWeapon(1);
-        }
-        else if (scroll < -0.1f)
-        {
-            ScrollWeapon(-1);
-        }
+        if (scroll > 0.1f) ScrollWeapon(1);
+        else if (scroll < -0.1f) ScrollWeapon(-1);
     }
 
     void ScrollWeapon(int direction)
     {
         if (unlockedWeapons.Count <= 1) return;
 
-        currentWeaponIndex += direction;
+        int newIndex = currentWeaponIndex + direction;
+        if (newIndex >= unlockedWeapons.Count) newIndex = 0;
+        else if (newIndex < 0) newIndex = unlockedWeapons.Count - 1;
 
-        if (currentWeaponIndex >= unlockedWeapons.Count) currentWeaponIndex = 0;
-        else if (currentWeaponIndex < 0) currentWeaponIndex = unlockedWeapons.Count - 1;
-
-        CmdEquipWeapon(currentWeaponIndex);
+        CmdEquipWeapon(newIndex);
     }
 
     [Command]
     void CmdEquipWeapon(int index)
     {
-        RpcEquipWeapon(index);
-        EquipWeapon(index);
+        currentWeaponIndex = index; // This triggers hook automatically
     }
 
-    [ClientRpc]
-    void RpcEquipWeapon(int index)
+    void OnWeaponIndexChanged(int oldIndex, int newIndex)
     {
-        EquipWeapon(index);
+        EquipWeapon(newIndex);
+
+        if (isLocalPlayer && shootController != null)
+        {
+            shootController.SetWeaponData(unlockedWeapons[newIndex]);
+        }
     }
 
     public void EquipWeapon(int index)
@@ -125,12 +114,11 @@ public class WeaponManager : NetworkBehaviour
             newSway.enabled = true;
             newSway.ReinitializeSway();
         }
+
+
     }
 
-    public Weapon GetCurrentWeapon()
-    {
-        return currentWeapon;
-    }
+    public Weapon GetCurrentWeapon() => currentWeapon;
 
     [Command]
     public void CmdPickupWeaponByIndex(int index)
@@ -146,10 +134,9 @@ public class WeaponManager : NetworkBehaviour
         Weapon weaponToUnlock = allWeapons[index];
         if (unlockedWeapons.Contains(weaponToUnlock)) return;
 
-        weaponToUnlock.gameObject.SetActive(false); // Keep it disabled until equipped
+        weaponToUnlock.gameObject.SetActive(false);
         unlockedWeapons.Add(weaponToUnlock);
 
-        // If this is the first weapon picked up after start, auto-equip it
         if (unlockedWeapons.Count == 1)
         {
             EquipWeapon(0);
@@ -165,9 +152,6 @@ public class WeaponManager : NetworkBehaviour
     public void CmdPickupWeaponAndDestroy(int index, NetworkIdentity pickup)
     {
         RpcUnlockWeapon(index);
-
-        // Now destroy the pickup across all clients
-        if (pickup != null)
-            NetworkServer.Destroy(pickup.gameObject);
+        if (pickup != null) NetworkServer.Destroy(pickup.gameObject);
     }
 }

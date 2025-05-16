@@ -5,7 +5,8 @@ public enum PickableType
 {
     Heal,
     Ammo,
-    Buff
+    Buff,
+    Gun
 }
 
 public class PickableObject : NetworkBehaviour
@@ -16,6 +17,9 @@ public class PickableObject : NetworkBehaviour
     [SerializeField] private float rotation_speed;
 
     private PlayerController player;
+
+    [HideInInspector]
+    public PickableHolder holder;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -47,6 +51,9 @@ public class PickableObject : NetworkBehaviour
             case PickableType.Buff:
                 //player.ApplyBuff(amount);
                 break;
+            case PickableType.Gun:
+                //player.ApplyBuff(amount);
+                break;
             default:
                 Debug.LogWarning("Pickable type not implemented.");
                 break;
@@ -56,5 +63,12 @@ public class PickableObject : NetworkBehaviour
     private void Update()
     {
         transform.Rotate(Vector3.up * rotation_speed * Time.deltaTime);
+    }
+
+    [ServerCallback]
+    public void OnPickedUp()
+    {
+        holder.NotifyPickedUp();
+        NetworkServer.Destroy(gameObject);
     }
 }

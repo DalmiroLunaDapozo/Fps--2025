@@ -37,6 +37,8 @@ public class FPSShoot : NetworkBehaviour
     private float nextSecondaryFireTime = 0f;
     private bool isZoomed = false;
 
+
+
     private Cinemachine.CinemachineVirtualCamera virtualCamera;
     private void Awake()
     {
@@ -93,7 +95,7 @@ public class FPSShoot : NetworkBehaviour
             nextFireTime = Time.time + fireRate;
             Shoot();
         }
-        else if (actualWeapon.secondaryActionType == SecondaryActionType.Zoom)
+        else if (actualWeapon != null && actualWeapon.secondaryActionType == SecondaryActionType.Zoom)
         {
             HandleZoomInput(secondaryInput > 0.5f);
         }
@@ -114,7 +116,7 @@ public class FPSShoot : NetworkBehaviour
 
     public void RequestEquipWeapon(int index)
     {
-        if (isLocalPlayer)
+        if (isLocalPlayer && weaponIndex != index)
         {
             CmdEquipWeapon(index);
         }
@@ -124,9 +126,13 @@ public class FPSShoot : NetworkBehaviour
     private void CmdEquipWeapon(int index)
     {
         weaponIndex = index;
-        SetWeaponData(WeaponDatabase.Instance.GetWeaponByIndex(index));
-    }
 
+        Weapon weapon = WeaponDatabase.Instance.GetWeaponByIndex(index);
+        if (weapon != null)
+        {
+            actualWeapon = weapon;
+        }
+    }
     private void OnWeaponIndexChanged(int oldIndex, int newIndex)
     {
         if (newIndex >= 0)
@@ -134,9 +140,10 @@ public class FPSShoot : NetworkBehaviour
             Weapon weapon = WeaponDatabase.Instance.GetWeaponByIndex(newIndex);
             SetWeaponData(weapon);
 
+            // If this is running on the server instance, update the server's actualWeapon reference
             if (isServer)
             {
-                SetWeaponData(weapon);
+                actualWeapon = weapon;
             }
         }
     }
@@ -166,12 +173,26 @@ public class FPSShoot : NetworkBehaviour
     [Command]
     private void CmdShootProjectile(Vector3 spawnPosition, Vector3 direction)
     {
+
+        
+        if (actualWeapon == null)
+        {
+            Debug.LogError("ActualWeapon is null on server!");
+            return;
+        }
+
+        var prefab = actualWeapon.projectilePrefab;
+        if (prefab == null)
+        {
+            Debug.LogError("Projectile prefab is null on server!");
+            return;
+        }
+
         if (projectilePrefab == null)
         {
             Debug.LogError("projectilePrefab is NULL on the server! Make sure weapon data is assigned.");
             return;
         }
-
         // Spawn the projectile and disable collisions for now
         GameObject projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.LookRotation(direction));
 
@@ -359,6 +380,9 @@ public class FPSShoot : NetworkBehaviour
 
     private void SecondaryShootShotgun()
     {
+
+        if (!isLocalPlayer) return;
+
         int pelletCount = actualWeapon.GetComponent<MainWeapon>().shotgunPelletCount;
         float spreadAngle = actualWeapon.GetComponent<MainWeapon>().shotgunSpreadAngle; 
         Vector3 origin = muzzleFlashSpawnPoint.position;
@@ -373,7 +397,7 @@ public class FPSShoot : NetworkBehaviour
 
         ShowMuzzleFlash(playerCamera.transform.forward);
 
-        RpcTriggerRecoil();
+       
     }
 
     [Command]
@@ -407,7 +431,7 @@ public class FPSShoot : NetworkBehaviour
             rb.velocity = direction * projectileSpeed;
             rb.useGravity = true;
         }
-
+        RpcTriggerRecoil();
         Debug.Log("Spawned shotgun pellet on server at " + spawnPos);
     }
 
@@ -456,16 +480,17 @@ public class FPSShoot : NetworkBehaviour
         if (isZoomed != isPressed)
         {
             isZoomed = isPressed;
-            float targetFOV = isZoomed
-                ? actualWeapon.GetComponent<Rifle>().zoomedFOV
-                : actualWeapon.GetComponent<Rifle>().defaultFOV;
 
-            if (virtualCamera != null)
+            if (virtualCamera != null && actualWeapon != null)
             {
-                StopAllCoroutines();
+                float targetFOV = isZoomed
+                    ? actualWeapon.GetComponent<Rifle>().zoomedFOV
+                    : actualWeapon.GetComponent<Rifle>().defaultFOV;
+
                 StartCoroutine(ZoomCoroutine(targetFOV));
             }
         }
     }
+
 
 }

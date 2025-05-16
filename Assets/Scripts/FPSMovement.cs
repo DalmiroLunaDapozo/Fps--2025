@@ -31,6 +31,14 @@ public class FPSMovement : NetworkBehaviour
     private float currentRecoil = 0f; // Current recoil applied to the camera
 
     [SerializeField] private NetworkAnimatorSync animatorSync;
+    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private Transform characterTransform;
+    [SerializeField] private Transform model;
+    [SerializeField] private float modelYaw;
+
+
+    [SyncVar(hook = nameof(OnModelYawChanged))]
+    private float syncedModelYaw;
 
     private void Awake()
     {
@@ -63,6 +71,14 @@ public class FPSMovement : NetworkBehaviour
         HandleLook();
         ApplyGravity();
 
+        if (isLocalPlayer)
+        {
+            float desiredYaw = modelYaw;
+            CmdSetModelYaw(desiredYaw);
+        }
+
+        model.localRotation = Quaternion.Euler(0f, modelYaw, 0f);
+
         // Apply recoil effect when shooting
         if (currentRecoil != 0f)
         {
@@ -73,9 +89,44 @@ public class FPSMovement : NetworkBehaviour
         {
             bool isRunning = moveInput.magnitude > 0.1f;
             animatorSync.SetRunning(isRunning);
+            animatorSync.thirdPersonAnimator.SetBool("IsRunning", isRunning);
+
+            // Pitch: Vertical angle (camera up/down)
+            float pitch = verticalRotation;
+            pitch = NormalizePitch(pitch);
+            pitch = Mathf.Clamp(pitch - 90f, -45f, 45f); // Remap [90,180] -> [0,-90] then clamp
+
+            // Yaw: Horizontal difference between character facing and camera facing
+            Vector3 flatForward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
+            Vector3 flatCharacterForward = Vector3.ProjectOnPlane(characterTransform.forward, Vector3.up).normalized;
+            float yaw = Vector3.SignedAngle(flatCharacterForward, flatForward, Vector3.up);
+            yaw = Mathf.Clamp(yaw, -45f, 45f); // Match animation threshold
+
+            // Send to animator
+            animatorSync.UpdateAimAngles(pitch, yaw);
+
+            // Local debug only
+            animatorSync.thirdPersonAnimator.SetBool("IsGrounded", IsGrounded());
+            animatorSync.thirdPersonAnimator.SetBool("IsJumping", ySpeed > 0.1f);
+            
         }
     }
 
+    private void OnModelYawChanged(float oldYaw, float newYaw)
+    {
+        model.localRotation = Quaternion.Euler(0f, newYaw, 0f);
+    }
+    [Command]
+    public void CmdSetModelYaw(float yaw)
+    {
+        syncedModelYaw = yaw;
+    }
+    private float NormalizePitch(float pitch)
+    {
+        pitch %= 360f;
+        if (pitch > 180f) pitch -= 360f;
+        return pitch;
+    }
     private void HandleMovement()
     {
         moveInput = controls.Player.Move.ReadValue<Vector2>(); // Movement input
@@ -109,7 +160,7 @@ public class FPSMovement : NetworkBehaviour
 
         // Rotate Camera Pivot Up/Down (pitch), with clamping
         verticalRotation -= lookInput.y * lookSpeedY * Time.deltaTime;
-        verticalRotation = Mathf.Clamp(verticalRotation, 0f, 180f); // Clamp the camera's pitch to 0-180 degrees
+        verticalRotation = Mathf.Clamp(verticalRotation, 10f, 170f); // Clamp the camera's pitch to 0-180 degrees
 
         cameraPivot.localRotation = Quaternion.Euler(verticalRotation, 0, 0); // Apply to camera pivot
     }
@@ -265,5 +316,7 @@ public class FPSMovement : NetworkBehaviour
             StartCoroutine(ApplyRocketJump(jumpVelocity)); // Apply the smooth rocket jump
         }
     }
+
+
 
 }

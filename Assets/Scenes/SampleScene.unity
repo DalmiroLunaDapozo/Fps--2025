@@ -2814,7 +2814,7 @@ MonoBehaviour:
   recoilAmount: 6
   recoilSpeed: 11
   hasInfiniteAmmo: 1
-  secondaryActionType: 0
+  secondaryActionType: 2
   currentAmmo: 1000
   defaultFOV: 60
   zoomedFOV: 30
@@ -4570,7 +4570,7 @@ MonoBehaviour:
   recoilAmount: 1.5
   recoilSpeed: 7
   hasInfiniteAmmo: 1
-  secondaryActionType: 0
+  secondaryActionType: 1
   currentAmmo: 1000
   shotgunPelletCount: 6
   shotgunSpreadAngle: 8

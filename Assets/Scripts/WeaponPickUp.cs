@@ -37,6 +37,6 @@ public class WeaponPickup : NetworkBehaviour
     [ClientRpc]
     void RpcDestroyPickup()
     {
-        Destroy(gameObject);
+        NetworkServer.Destroy(gameObject);
     }
 }

@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2941474629623674347}
   - component: {fileID: 3195014727873638299}
   - component: {fileID: 3052135301215928815}
-  - component: {fileID: 2912991358126589141}
+  - component: {fileID: -3555496164125093171}
   m_Layer: 0
   m_Name: BounceGun
   m_TagString: Untagged
@@ -149,9 +149,11 @@ MonoBehaviour:
   syncInterval: 0
   weaponName: BounceGun
   fireRate: 0.2
+  secondaryFireRate: 0
   maxAmmo: 1000
   projectilePrefab: {fileID: 1991981165879869193, guid: 8f2677f6cd18e17458ae9340489be316,
     type: 3}
+  secondaryProjectilePrefab: {fileID: 0}
   firePoint: {fileID: 0}
   maxDamage: 10
   minDamage: 15
@@ -159,6 +161,7 @@ MonoBehaviour:
   recoilAmount: 1
   recoilSpeed: 8
   hasInfiniteAmmo: 0
+  secondaryActionType: 0
   currentAmmo: 0
 --- !u!114 &3052135301215928815
 MonoBehaviour:
@@ -177,7 +180,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   weaponIndex: 3
---- !u!114 &2912991358126589141
+--- !u!114 &-3555496164125093171
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -186,7 +189,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 3893533772795117679}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 739b68f345b69914d8c4f65f06112e04, type: 3}
+  m_Script: {fileID: 11500000, guid: 16861bc3157fd044991659765f0c2f7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotateSpeed: {x: 0, y: 0, z: 20}
+  syncMethod: 0
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  pickableType: 3
+  amount: 0
+  rotation_speed: 10
+  holder: {fileID: 0}

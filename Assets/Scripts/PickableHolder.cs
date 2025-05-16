@@ -39,6 +39,20 @@ public class PickableHolder : NetworkBehaviour
     private void SpawnPickable()
     {
         currentPickable = Instantiate(pickablePrefab, spawnPoint.position + spawnOffset, Quaternion.identity * spawnRotationOffset);
+
+        // Link back to this holder
+        PickableObject pickableScript = currentPickable.GetComponent<PickableObject>();
+        if (pickableScript != null)
+        {
+            pickableScript.holder = this;
+        }
+
         NetworkServer.Spawn(currentPickable);
+    }
+
+    [Server]
+    public void NotifyPickedUp()
+    {
+        currentPickable = null; // This allows the respawn timer to resume properly
     }
 }

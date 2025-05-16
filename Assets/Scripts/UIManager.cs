@@ -31,6 +31,8 @@ public class UIManager : MonoBehaviour
             if (obj.isLocalPlayer)
             {
                 localPlayer = obj;
+
+                // Get DamagablePlayer from BodyCollision
                 Transform bodyCollision = obj.transform.Find("BodyCollision");
                 if (bodyCollision != null)
                 {
@@ -40,6 +42,14 @@ public class UIManager : MonoBehaviour
                 {
                     Debug.LogWarning("BodyCollision not found under local player!");
                 }
+
+                // Get the FPSShoot from local player
+                shootManager = obj.GetComponent<FPSShoot>();
+                if (shootManager == null)
+                {
+                    Debug.LogWarning("FPSShoot not found on local player!");
+                }
+
                 break;
             }
         }

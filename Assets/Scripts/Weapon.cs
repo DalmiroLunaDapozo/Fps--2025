@@ -26,13 +26,16 @@ public abstract class Weapon : NetworkBehaviour
     public float recoilSpeed = 5f;
     public bool hasInfiniteAmmo;
     public SecondaryActionType secondaryActionType;
+   
     [SyncVar]
     public int currentAmmo;
+
+    
 
     public virtual void Start()
     {
         currentAmmo = maxAmmo;
     }
 
-    
+ 
 }
